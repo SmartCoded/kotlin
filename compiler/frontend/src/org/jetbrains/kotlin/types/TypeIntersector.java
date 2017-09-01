@@ -43,7 +43,7 @@ public class TypeIntersector {
         return !isTypePopulated(intersectionType);
     }
 
-    private static boolean isTypePopulated(@NotNull KotlinType intersectionType) {
+    public static boolean isTypePopulated(@NotNull KotlinType intersectionType) {
         Collection<KotlinType> typesInIntersection = intersectionType.getConstructor().getSupertypes();
 
         KotlinTypeChecker typeChecker = KotlinTypeChecker.DEFAULT;
