@@ -10210,6 +10210,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("invokeLambdaAsFunction.kt")
+            public void testInvokeLambdaAsFunction() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/inference/invokeLambdaAsFunction.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("kt1293.kt")
             public void testKt1293() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/inference/kt1293.kt");
