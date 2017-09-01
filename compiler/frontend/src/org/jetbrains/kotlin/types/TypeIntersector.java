@@ -41,7 +41,12 @@ public class TypeIntersector {
     }
 
     @Nullable
-    public static KotlinType intersectTypes(@NotNull KotlinTypeChecker typeChecker, @NotNull Collection<KotlinType> types) {
+    public static KotlinType intersectTypes(@NotNull Collection<KotlinType> types) {
+        return intersectTypes(KotlinTypeChecker.DEFAULT, types);
+    }
+
+    @Nullable
+    private static KotlinType intersectTypes(@NotNull KotlinTypeChecker typeChecker, @NotNull Collection<KotlinType> types) {
         assert !types.isEmpty() : "Attempting to intersect empty collection of types, this case should be dealt with on the call site.";
 
         if (types.size() == 1) {
