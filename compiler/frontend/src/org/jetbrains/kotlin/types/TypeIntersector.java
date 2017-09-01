@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.types;
 
 import kotlin.Unit;
+import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.descriptors.annotations.Annotations;
 import org.jetbrains.kotlin.resolve.calls.inference.CallHandle;
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystem;
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemBuilderImpl;
+import org.jetbrains.kotlin.types.checker.IntersectionTypeKt;
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
 
 import java.util.*;
@@ -37,12 +39,34 @@ import static org.jetbrains.kotlin.resolve.descriptorUtil.DescriptorUtilsKt.getB
 public class TypeIntersector {
 
     public static boolean isIntersectionEmpty(@NotNull KotlinType typeA, @NotNull KotlinType typeB) {
-        return intersectTypes(KotlinTypeChecker.DEFAULT, new LinkedHashSet<>(Arrays.asList(typeA, typeB))) == null;
+        KotlinType intersectionType = intersectTypes(Arrays.asList(typeA, typeB));
+        return !isTypePopulated(intersectionType);
     }
 
-    @Nullable
+    private static boolean isTypePopulated(@NotNull KotlinType intersectionType) {
+        Collection<KotlinType> typesInIntersection = intersectionType.getConstructor().getSupertypes();
+
+        KotlinTypeChecker typeChecker = KotlinTypeChecker.DEFAULT;
+        for (KotlinType lower : typesInIntersection) {
+            if (TypeUtils.canHaveSubtypes(typeChecker, lower)) {
+                continue;
+            }
+
+            for (KotlinType upper : typesInIntersection) {
+                boolean mayBeEqual = TypeUnifier.mayBeEqual(lower, upper);
+                if (!mayBeEqual && !typeChecker.isSubtypeOf(lower, upper) && !typeChecker.isSubtypeOf(lower, upper)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @NotNull
     public static KotlinType intersectTypes(@NotNull Collection<KotlinType> types) {
-        return intersectTypes(KotlinTypeChecker.DEFAULT, types);
+        List<UnwrappedType> unwrappedTypes = CollectionsKt.map(types, KotlinType::unwrap);
+        return IntersectionTypeKt.intersectTypes(unwrappedTypes);
     }
 
     @Nullable
@@ -156,8 +180,11 @@ public class TypeIntersector {
     public static KotlinType getUpperBoundsAsType(@NotNull TypeParameterDescriptor descriptor) {
         List<KotlinType> upperBounds = descriptor.getUpperBounds();
         assert !upperBounds.isEmpty() : "Upper bound list is empty: " + descriptor;
-        KotlinType upperBoundsAsType = intersectTypes(KotlinTypeChecker.DEFAULT, upperBounds);
-        return upperBoundsAsType != null ? upperBoundsAsType : getBuiltIns(descriptor).getNothingType();
+
+        KotlinType intersectionType = intersectTypes(upperBounds);
+        if (!isTypePopulated(intersectionType)) return getBuiltIns(descriptor).getNothingType();
+
+        return intersectionType;
     }
 
     private static class TypeUnifier {
