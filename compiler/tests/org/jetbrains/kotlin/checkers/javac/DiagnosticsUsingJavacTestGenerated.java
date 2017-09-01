@@ -10216,6 +10216,12 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 doTest(fileName);
             }
 
+            @TestMetadata("kt12399.kt")
+            public void testKt12399() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/inference/kt12399.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("kt1293.kt")
             public void testKt1293() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/inference/kt1293.kt");
